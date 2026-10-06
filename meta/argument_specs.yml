@@ -1,0 +1,23 @@
+---
+# role: update
+# file: meta/argument_specs.yml
+
+argument_specs:
+  main:
+    short_description: Install all available system updates and optionally reboot when
+      required.
+    options:
+      update_reboot:
+        type: bool
+        default: false
+        description:
+          - Reboot after updating packages when the platform reports that a reboot is needed.
+          - Pending reboot requests from earlier updates are also honored.
+      update_reboot_time:
+        type: str
+        default: now
+        description:
+          - Reboot immediately with now, or schedule the next occurrence of a local 24-hour
+            HH:MM time.
+          - Only applies when update_reboot is true and a reboot is needed.
+          - Scheduled reboots require systemd and return without waiting for the reboot.

@@ -1,0 +1,32 @@
+---
+# role: update
+# file: tasks/reboot-RedHat.yml
+
+- name: UPDATE | Load DNF reboot detection settings
+  ansible.builtin.include_vars: "{{ lookup('ansible.builtin.first_found', __update_platform_files) }}"
+  vars:
+    __update_platform_files:
+      files:
+        - '{{ ansible_facts.os_family }}.yml'
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: UPDATE | Install the DNF reboot detection plugin
+  become: true
+  become_user: root
+  ansible.builtin.dnf:
+    name: '{{ __update_dnf[ansible_facts.pkg_mgr].package }}'
+    state: present
+
+- name: UPDATE | Read the DNF reboot hint
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv: '{{ __update_dnf[ansible_facts.pkg_mgr].reboot_command }}'
+  changed_when: false
+  failed_when: __update_reboot_hint.rc not in [0, 1]
+  register: __update_reboot_hint
+
+- name: UPDATE | Honor a DNF reboot request
+  ansible.builtin.import_tasks: reboot.yml
+  when: __update_reboot_hint.rc == 1

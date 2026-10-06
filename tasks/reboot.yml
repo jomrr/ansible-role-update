@@ -1,0 +1,50 @@
+---
+# role: update
+# file: tasks/reboot.yml
+
+- name: UPDATE | Reboot immediately and wait for the host
+  become: true
+  become_user: root
+  ansible.builtin.reboot:
+  when: update_reboot_time == 'now'
+
+- name: UPDATE | Read the pending systemd shutdown schedule
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv:
+      - busctl
+      - --json=short
+      - get-property
+      - org.freedesktop.login1
+      - /org/freedesktop/login1
+      - org.freedesktop.login1.Manager
+      - ScheduledShutdown
+  changed_when: false
+  register: __update_shutdown_schedule
+  when: update_reboot_time != 'now'
+
+- name: UPDATE | Read the pending reboot time in the local timezone
+  ansible.builtin.command:
+    argv:
+      - date
+      - --date
+      - "@{{ ((__update_shutdown_schedule.stdout | from_json).data[1] | int) // 1000000 }}"
+      - +%H:%M
+  changed_when: false
+  register: __update_shutdown_time
+  when:
+    - update_reboot_time != 'now'
+    - (__update_shutdown_schedule.stdout | from_json).data[0] == 'reboot'
+
+- name: UPDATE | Schedule the required reboot
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv: [shutdown, --reboot, '{{ update_reboot_time }}', Reboot requested by Ansible system updates]
+  changed_when: true
+  when:
+    - update_reboot_time != 'now'
+    - >-
+      (__update_shutdown_schedule.stdout | from_json).data[0] != 'reboot' or
+      __update_shutdown_time.stdout != update_reboot_time

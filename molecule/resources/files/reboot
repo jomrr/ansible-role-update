@@ -1,0 +1,4 @@
+#!/bin/sh
+# Simulate a new boot identity without rebooting a container's shared kernel.
+set -eu
+printf 'after-reboot\n' > /run/update-molecule-boot-id

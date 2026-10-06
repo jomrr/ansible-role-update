@@ -1,0 +1,16 @@
+---
+# role: update
+# file: tasks/reboot-Suse.yml
+
+- name: UPDATE | Read the Zypper reboot hint
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv: [zypper, --non-interactive, needs-rebooting]
+  changed_when: false
+  failed_when: __update_reboot_hint.rc not in [0, 102]
+  register: __update_reboot_hint
+
+- name: UPDATE | Honor a Zypper reboot request
+  ansible.builtin.import_tasks: reboot.yml
+  when: __update_reboot_hint.rc == 102

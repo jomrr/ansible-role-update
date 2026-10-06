@@ -1,0 +1,19 @@
+---
+# role: update
+# file: tasks/assert.yml
+
+- name: UPDATE | Require a supported platform and package manager
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family in ['Debian', 'RedHat', 'Suse']
+      - ansible_facts.pkg_mgr in ['apt', 'dnf', 'dnf5', 'zypper']
+    fail_msg: The update role requires Debian, Red Hat, or SUSE platforms with APT, DNF/DNF5, or Zypper.
+    quiet: true
+
+- name: UPDATE | Validate reboot scheduling
+  ansible.builtin.assert:
+    that:
+      - update_reboot_time is match('^(now|([01][0-9]|2[0-3]):[0-5][0-9])\Z')
+      - not update_reboot or update_reboot_time == 'now' or ansible_facts.service_mgr == 'systemd'
+    fail_msg: Set update_reboot_time to now or HH:MM in 24-hour format; scheduled reboots require systemd.
+    quiet: true

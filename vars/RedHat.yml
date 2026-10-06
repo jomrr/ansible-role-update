@@ -1,0 +1,11 @@
+---
+# role: update
+# file: vars/RedHat.yml
+
+__update_dnf:
+  dnf:
+    package: dnf-plugins-core
+    reboot_command: [dnf, needs-restarting, --reboothint]
+  dnf5:
+    package: dnf5-plugins
+    reboot_command: [dnf5, needs-restarting]

@@ -1,0 +1,62 @@
+---
+# role: update
+# file: molecule/resources/playbooks/verify.yml
+
+- name: UPDATE | Verify completed updates and the default reboot policy
+  hosts: all
+  gather_facts: true
+  environment:
+    LC_ALL: C
+  tasks:
+    - name: UPDATE | Check for remaining APT upgrades
+      become: true
+      become_user: root
+      ansible.builtin.command:
+        argv: [apt-get, --simulate, dist-upgrade]
+      changed_when: false
+      register: __update_apt_pending
+      failed_when: __update_apt_pending.rc != 0 or '0 upgraded, 0 newly installed' not in __update_apt_pending.stdout
+      when: ansible_facts.pkg_mgr == 'apt'
+
+    - name: UPDATE | Check for remaining DNF upgrades
+      become: true
+      become_user: root
+      ansible.builtin.command:
+        argv: ['{{ ansible_facts.pkg_mgr }}', --cacheonly, check-update]
+      changed_when: false
+      when: ansible_facts.pkg_mgr in ['dnf', 'dnf5']
+
+    - name: UPDATE | Check for remaining Zypper upgrades
+      become: true
+      become_user: root
+      ansible.builtin.command:
+        argv: [zypper, --non-interactive, --xmlout, --no-refresh, list-updates]
+      changed_when: false
+      register: __update_zypper_pending
+      failed_when: __update_zypper_pending.rc != 0 or '<update ' in __update_zypper_pending.stdout
+      when: ansible_facts.pkg_mgr == 'zypper'
+
+    - name: UPDATE | Read the pending Debian reboot request
+      ansible.builtin.stat:
+        path: /run/reboot-required
+      register: __update_pending_marker
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: UPDATE | Verify that rebooting remains disabled by default
+      ansible.builtin.assert:
+        that:
+          - __update_pending_marker.stat.exists
+        quiet: true
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: UPDATE | Inspect the shutdown schedule after check mode
+      become: true
+      become_user: root
+      ansible.builtin.stat:
+        path: /run/systemd/shutdown/scheduled
+      register: __update_check_schedule
+
+    - name: UPDATE | Verify that no reboot was scheduled
+      ansible.builtin.assert:
+        that: not __update_check_schedule.stat.exists
+        quiet: true

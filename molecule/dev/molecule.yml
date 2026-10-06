@@ -1,0 +1,84 @@
+---
+# role: update
+# file: molecule/dev/molecule.yml
+
+dependency:
+  name: "galaxy"
+  options:
+    role-file: "${MOLECULE_PROJECT_DIRECTORY}/collections.yml"
+    requirements-file: "${MOLECULE_PROJECT_DIRECTORY}/collections.yml"
+driver:
+  name: "podman"
+provisioner:
+  name: "ansible"
+  config_options:
+    defaults:
+      forks: 8
+      interpreter_python: "auto_silent"
+      callbacks_enabled: "ansible.builtin.default"
+      callback_result_format: "yaml"
+      display_ok_hosts: false
+      display_skipped_hosts: false
+      show_task_path_on_failure: true
+    connection:
+      pipelining: true
+  inventory:
+    group_vars:
+      all:
+        ansible_podman_mount_detection: false
+        update_reboot: "{{ ansible_check_mode }}"
+        update_reboot_time: "{{ '23:30' if ansible_check_mode else 'now' }}"
+  log: true
+  playbooks:
+    prepare: "../resources/playbooks/prepare.yml"
+    converge: "../resources/playbooks/converge.yml"
+    verify: "../resources/playbooks/verify.yml"
+    side_effect: "../resources/playbooks/side_effect.yml"
+verifier:
+  name: "ansible"
+scenario:
+  test_sequence:
+    - "dependency"
+    - "destroy"
+    - "syntax"
+    - "create"
+    - "prepare"
+    - "check"
+    - "converge"
+    - "idempotence"
+    - "check"
+    - "verify"
+    - "side_effect"
+    - "destroy"
+  name: "dev"
+platforms:
+  - name: "almalinux-latest-update"
+    image: "docker.io/jomrr/molecule-almalinux:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"
+  - name: "debian-latest-update"
+    image: "docker.io/jomrr/molecule-debian:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"
+  - name: "fedora-latest-update"
+    image: "docker.io/jomrr/molecule-fedora:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"
+  - name: "opensuse-leap-latest-update"
+    image: "docker.io/jomrr/molecule-opensuse-leap:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"
+  - name: "opensuse-tumbleweed-latest-update"
+    image: "docker.io/jomrr/molecule-opensuse-tumbleweed:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"
+  - name: "ubuntu-latest-update"
+    image: "docker.io/jomrr/molecule-ubuntu:latest"
+    pre_build_image: true
+    override_command: false
+    systemd: "true"

@@ -1,0 +1,33 @@
+---
+# role: update
+# file: tasks/reboot-Debian.yml
+
+- name: UPDATE | Install kernel and microcode reboot detection
+  become: true
+  become_user: root
+  ansible.builtin.apt:
+    name: needrestart
+    state: present
+
+- name: UPDATE | Check for pending kernel and microcode updates
+  become: true
+  become_user: root
+  ansible.builtin.command:
+    argv: [needrestart, -b, -k, -w]
+  changed_when: false
+  register: __update_needrestart
+
+- name: UPDATE | Check the package reboot marker
+  ansible.builtin.stat:
+    path: /run/reboot-required
+    get_checksum: false
+    get_mime: false
+    get_attributes: false
+  register: __update_reboot_marker
+
+- name: UPDATE | Honor a Debian reboot request
+  ansible.builtin.import_tasks: reboot.yml
+  when: >-
+    __update_reboot_marker.stat.exists or
+    __update_needrestart.stdout is search('(?m)^NEEDRESTART-KSTA: [23]$') or
+    __update_needrestart.stdout is search('(?m)^NEEDRESTART-UCSTA: 2$')

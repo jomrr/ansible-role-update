@@ -1,0 +1,9 @@
+---
+# role: update
+# file: defaults/main.yml
+
+# Reboot after package updates when the platform reports a pending reboot.
+update_reboot: false
+
+# Reboot immediately with now or at the next HH:MM in the target's local timezone.
+update_reboot_time: now

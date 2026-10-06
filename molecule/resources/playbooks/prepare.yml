@@ -1,0 +1,32 @@
+---
+# role: update
+# file: molecule/resources/playbooks/prepare.yml
+
+- name: UPDATE | Prepare pending reboot and simulated boot fixtures
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: UPDATE | Seed a pending Debian reboot request
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        dest: /run/reboot-required
+        content: "Molecule pending reboot\n"
+        mode: '0644'
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: UPDATE | Create the simulated boot identity
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        dest: /run/update-molecule-boot-id
+        content: "before-reboot\n"
+        mode: '0644'
+
+    - name: UPDATE | Install the container reboot fixture
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        src: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/resources/files/reboot"
+        dest: /usr/local/sbin/update-molecule-reboot
+        mode: '0755'

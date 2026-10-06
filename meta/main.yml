@@ -1,0 +1,16 @@
+---
+# role: update
+# file: meta/main.yml
+
+galaxy_info:
+  author: Jonas Mauer
+  description: Ansible role for updating installed system packages and optionally rebooting when required.
+  galaxy_tags:
+    - system
+    - updates
+    - packages
+  issue_tracker_url: https://github.com/jomrr/ansible-role-update/issues
+  license: MIT
+  min_ansible_version: "2.20"
+  namespace: jomrr
+  role_name: update
