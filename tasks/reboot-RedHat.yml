@@ -28,5 +28,5 @@
   register: __update_reboot_hint
 
 - name: UPDATE | Honor a DNF reboot request
-  ansible.builtin.import_tasks: reboot.yml
+  ansible.builtin.include_tasks: reboot.yml
   when: __update_reboot_hint.rc == 1

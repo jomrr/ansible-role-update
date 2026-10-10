@@ -26,7 +26,7 @@
   register: __update_reboot_marker
 
 - name: UPDATE | Honor a Debian reboot request
-  ansible.builtin.import_tasks: reboot.yml
+  ansible.builtin.include_tasks: reboot.yml
   when: >-
     __update_reboot_marker.stat.exists or
     __update_needrestart.stdout is search('(?m)^NEEDRESTART-KSTA: [23]$') or

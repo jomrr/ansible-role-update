@@ -5,33 +5,9 @@
 - name: UPDATE | Validate platform support
   ansible.builtin.import_tasks: assert.yml
 
-- name: UPDATE | Upgrade installed APT packages
-  become: true
-  become_user: root
-  ansible.builtin.apt:
-    upgrade: dist
-    update_cache: true
-    cache_valid_time: 3600
-  when: ansible_facts.pkg_mgr == 'apt'
-
-- name: UPDATE | Upgrade installed DNF packages
-  become: true
-  become_user: root
-  ansible.builtin.dnf:
-    name: '*'
-    state: latest
-    update_only: true
-    update_cache: true
-  when: ansible_facts.pkg_mgr in ['dnf', 'dnf5']
-
-- name: UPDATE | Synchronize installed Zypper packages
-  become: true
-  become_user: root
-  community.general.zypper:
-    name: '*'
-    state: dist-upgrade
-    update_cache: true
-  when: ansible_facts.pkg_mgr == 'zypper'
+- name: UPDATE | Update packages with the detected package manager
+  ansible.builtin.include_tasks:
+    file: "{{ 'dnf' if ansible_facts.pkg_mgr == 'dnf5' else ansible_facts.pkg_mgr }}.yml"
 
 - name: UPDATE | Handle pending reboot requests
   ansible.builtin.include_tasks: "reboot-{{ ansible_facts.os_family }}.yml"

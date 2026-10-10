@@ -1,0 +1,11 @@
+---
+# role: update
+# file: tasks/apt.yml
+
+- name: UPDATE | Upgrade installed APT packages
+  become: true
+  become_user: root
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+    cache_valid_time: 3600

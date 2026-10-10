@@ -1,0 +1,11 @@
+---
+# role: update
+# file: tasks/zypper.yml
+
+- name: UPDATE | Synchronize installed Zypper packages
+  become: true
+  become_user: root
+  community.general.zypper:
+    name: '*'
+    state: dist-upgrade
+    update_cache: true

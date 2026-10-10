@@ -1,0 +1,12 @@
+---
+# role: update
+# file: tasks/dnf.yml
+
+- name: UPDATE | Upgrade installed DNF packages
+  become: true
+  become_user: root
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+    update_only: true
+    update_cache: true
