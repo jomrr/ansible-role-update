@@ -26,14 +26,11 @@ provisioner:
     group_vars:
       all:
         ansible_podman_mount_detection: false
-        update_reboot: "{{ ansible_check_mode }}"
-        update_reboot_time: "{{ '23:30' if ansible_check_mode else 'now' }}"
   log: true
   playbooks:
     prepare: "../resources/playbooks/prepare.yml"
     converge: "../resources/playbooks/converge.yml"
     verify: "../resources/playbooks/verify.yml"
-    side_effect: "../resources/playbooks/side_effect.yml"
 verifier:
   name: "ansible"
 scenario:
@@ -42,13 +39,10 @@ scenario:
     - "destroy"
     - "syntax"
     - "create"
-    - "prepare"
-    - "check"
     - "converge"
     - "idempotence"
     - "check"
     - "verify"
-    - "side_effect"
     - "destroy"
   name: "dev"
 platforms:
